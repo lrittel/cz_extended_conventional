@@ -17,6 +17,9 @@ cz_extended_conventional = "cz_extended_conventional:ExtendedConventionalCz"
 packages = [{include = "cz_extended_conventional.py", from = "src" }]
 version = "0.0.0"
 
+[tool.poetry.group.test.dependencies]
+pytest = "^8.4.0"
+
 [tool.commitizen]
 major_version_zero = true
 name = "cz_conventional_commits"
