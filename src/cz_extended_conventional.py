@@ -17,21 +17,28 @@ class ExtendedConventionalCz(ConventionalCommitsCz):
         assert (
             prefix_question["name"] == "prefix"
         ), "Expected the first question to be 'prefix'"
-        prefix_question["choices"].append(
+        prefix_question["choices"] += [
             {
                 "value": "deps",
                 "name": "deps: Dependency updates that do not change the behavior; use feat "
                 + "changes that cause user-facing changes.",
+                "key": "e",
+            },
+            {
+                "value": "chore",
+                "name": "chore: General maintenance tasks that do not change the "
+                + "behavior",
                 "key": "o",
-            }
-        )
+            },
+        ]
+        prefix_question["choices"].sort(key=lambda c: c["value"])
         return questions
 
     @override
     def schema_pattern(self) -> str:
         PATTERN = (
             r"(?s)"  # To explicitly make . match new line
-            r"(build|ci|deps|docs|feat|fix|perf|refactor|style|test|revert|bump)"  # type
+            r"(build|chore|ci|deps|docs|feat|fix|perf|refactor|style|test|revert|bump)"  # type
             r"(\(\S+\))?!?:"  # scope
             r"( [^\n\r]+)"  # subject
             r"((\n\n.*)|(\s*))?$"

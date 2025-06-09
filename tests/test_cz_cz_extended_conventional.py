@@ -18,6 +18,11 @@ def extended_conventional(config):
     return ExtendedConventionalCz(config)
 
 
+def test_questions(extended_conventional):
+    questions = extended_conventional.questions()
+    assert isinstance(questions, list)
+
+
 @pytest.mark.parametrize(
     "prefix, expected",
     [
@@ -44,6 +49,7 @@ def test_prefixes(extended_conventional, prefix, expected):
     "message, expected",
     [
         # Test the new prefixes
+        ("chore: General maintenance task", "General maintenance task"),
         ("deps: Update dependencies", "Update dependencies"),
         (
             "deps!: Update important dependencies\n\nTest",
@@ -57,7 +63,6 @@ def test_prefixes(extended_conventional, prefix, expected):
         ("feat: Add new feature", "Add new feature"),
         # Test invalid prefix
         ("invalid: This should not match", ""),
-        ("chore!: This should not match", ""),
     ],
 )
 def test_schema_pattern(extended_conventional, message, expected):
