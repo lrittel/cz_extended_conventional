@@ -68,3 +68,65 @@ def test_prefixes(extended_conventional, prefix, expected):
 def test_schema_pattern(extended_conventional, message, expected):
     result = extended_conventional.process_commit(message)
     assert result == expected
+
+
+@pytest.mark.parametrize(
+    "answers, expected",
+    [
+        (
+            {
+                "prefix": "feat",
+                "scope": "component",
+                "subject": "this is very long subject line that would surely be broken into two lines. But this is not the intended behavior",
+                "body": "",
+                "footer": "",
+                "is_breaking_change": False,
+            },
+            "feat(component): this is very long subject line that would surely be broken into two lines. But this is not the intended behavior",
+        ),
+        (
+            {
+                "prefix": "fix",
+                "scope": "api",
+                "subject": "short subject",
+                "body": "This is a very long body line that should be wrapped at word boundaries so that no line exceeds seventy-two characters in length. This ensures readability and proper formatting.",
+                "footer": "",
+                "is_breaking_change": False,
+            },
+            "\n".join(
+                [
+                    "fix(api): short subject",
+                    "",
+                    "This is a very long body line that should be wrapped at word boundaries",
+                    "so that no line exceeds seventy-two characters in length. This ensures",
+                    "readability and proper formatting.",
+                ]
+            ),
+        ),
+        (
+            {
+                "prefix": "refactor",
+                "scope": "",
+                "subject": "short subject",
+                "body": "",
+                "footer": "This is a very long footer line that should also be wrapped at word boundaries to maintain the seventy-two character limit and ensure clarity.",
+                "is_breaking_change": False,
+            },
+            "\n".join(
+                [
+                    "refactor: short subject",
+                    "",
+                    "This is a very long footer line that should also be wrapped at word",
+                    "boundaries to maintain the seventy-two character limit and ensure",
+                    "clarity.",
+                ]
+            ),
+        ),
+    ],
+)
+def test_long_messages(extended_conventional, answers, expected):
+    result = extended_conventional.message(answers)
+    assert result == expected
+    # Ensure that the result still matches the schema pattern.
+    assert extended_conventional.process_commit(result) != ""
+    assert extended_conventional.process_commit(result) == answers["subject"]

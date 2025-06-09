@@ -1,3 +1,4 @@
+import textwrap
 from typing import override
 
 from commitizen.cz.conventional_commits.conventional_commits import (
@@ -33,6 +34,31 @@ class ExtendedConventionalCz(ConventionalCommitsCz):
         ]
         prefix_question["choices"].sort(key=lambda c: c["value"])
         return questions
+
+    @override
+    def message(self, answers: dict[str, str]) -> str:
+        def fill(text):
+            return textwrap.fill(text, width=TEXT_WIDTH, break_on_hyphens=False)
+
+        prefix = answers["prefix"]
+        scope = answers["scope"]
+        subject = answers["subject"]
+        body = answers["body"]
+        footer = answers["footer"]
+        is_breaking_change = answers["is_breaking_change"]
+
+        if scope:
+            scope = f"({scope})"
+        if body:
+            body = f"\n\n{fill(body)}"
+        if is_breaking_change:
+            footer = f"BREAKING CHANGE: {footer}"
+        if footer:
+            footer = f"\n\n{fill(footer)}"
+
+        message = f"{prefix}{scope}: {subject}{body}{footer}"
+
+        return message
 
     @override
     def schema_pattern(self) -> str:
