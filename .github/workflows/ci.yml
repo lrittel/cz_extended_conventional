@@ -8,7 +8,7 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        python-version: ["3.12"]
+        python-version: ["3.10", "3.11","3.12", "3.13"]
     steps:
       - uses: actions/checkout@v4
 
@@ -80,8 +80,6 @@ jobs:
 
   packaging:
     runs-on: ubuntu-latest
-    permissions:
-      contents: write
     steps:
       - uses: actions/checkout@v4
 
@@ -113,12 +111,66 @@ jobs:
       - name: Build a package
         run: poetry build
 
+      # Upload an artifact
+      - name: Upload the wheel/sdist as artifacts
+        if: ${{ !env.ACT }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: dist
+          path: |
+            dist/*-*.tar.gz
+            dist/*-*.whl
+
+  release:
+    needs: packaging
+    if: ${{ github.ref_type == 'tag' }}
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - name: Download artifacts
+        if: ${{ !env.ACT }}
+        uses: actions/download-artifact@v4
+        with:
+          name: dist
+
+      - name: Get the tag
+        if: ${{ !env.ACT }}
+        uses: olegtarasov/get-tag@v2.1.4
+        id: tagName
+        with:
+          tagRegex: 'v(?<version>[0-9]+\.[0-9]+\.[0-9]+)(?<suffix>.*)'
+
       # Create a release if a tag is pushed
-      - name: Release
+      - name: Create a release
+        if: ${{ !env.ACT }}
         uses: softprops/action-gh-release@v2
-        if: github.ref_type == 'tag'
         with:
           body_path: CHANGELOG.md
           files: |
             dist/*-*.tar.gz
             dist/*-*.whl
+          draft: true
+          prerelease: ${{ steps.tagName.outputs.suffix != '' }}
+
+  publish:
+    needs: packaging
+    if: ${{ github.ref_type == 'tag' }}
+    runs-on: ubuntu-latest
+    permissions:
+      id-token: write
+    environment:
+      name: pypi
+      url: https://pypi.org/p/cz_extended_conventional
+    steps:
+      - name: Download artifacts
+        if: ${{ !env.ACT }}
+        uses: actions/download-artifact@v4
+        with:
+          name: dist
+
+      - name: Publish release distributions to PyPI
+        if: ${{ !env.ACT }}
+        uses: pypa/gh-action-pypi-publish@release/v1
+        with:
+          packages-dir: dist/
