@@ -1,0 +1,124 @@
+name: CI
+
+on:
+  push:
+
+jobs:
+  tests:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        python-version: ["3.12"]
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install Python
+        uses: actions/setup-python@v5
+        # see details (matrix, python-version, python-version-file, etc.)
+        # https://github.com/actions/setup-python
+        with:
+          python-version: ${{ matrix.python-version }}
+          cache: pip
+
+      # Set up Poetry and the venv
+      - name: Install poetry
+        uses: abatilo/actions-poetry@v2
+      - name: Setup a local virtual environment (if no poetry.toml file)
+        run: |
+          poetry config virtualenvs.create true --local
+          poetry config virtualenvs.in-project true --local
+      - uses: actions/cache@v3
+        name: Define a cache for the virtual environment based on the dependencies lock file
+        with:
+          path: ./.venv
+          key: venv-${{ hashFiles('poetry.lock') }}
+      - name: Install the project dependencies
+        run: poetry install --all-groups --all-extras
+
+      # Run tests
+      - name: Run the test suite
+        run: poetry run pytest -v
+
+  linting:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      # Set up Python
+      - name: Install Python
+        uses: actions/setup-python@v5
+        # see details (matrix, python-version, python-version-file, etc.)
+        # https://github.com/actions/setup-python
+        with:
+          python-version: "3.12"
+          cache: pip
+
+      # Set up Poetry and the venv
+      - name: Install poetry
+        uses: abatilo/actions-poetry@v2
+      - name: Setup a local virtual environment (if no poetry.toml file)
+        run: |
+          poetry config virtualenvs.create true --local
+          poetry config virtualenvs.in-project true --local
+      - uses: actions/cache@v3
+        name: Define a cache for the virtual environment based on the dependencies lock file
+        with:
+          path: ./.venv
+          key: venv-${{ hashFiles('poetry.lock') }}
+      - name: Install the project dependencies
+        run: poetry install --with dev
+
+      # Set up pre-commit and run all pre-commit hooks
+      - name: set PY
+        run: echo "PY=$(python -VV | sha256sum | cut -d' ' -f1)" >> $GITHUB_ENV
+      - uses: actions/cache@v3
+        with:
+          path: ~/.cache/pre-commit
+          key: pre-commit|${{ env.PY }}|${{ hashFiles('.pre-commit-config.yaml') }}
+      - name: Check if the pre-commit hook passes
+        run: poetry run pre-commit run --all
+
+  packaging:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v4
+
+      # Set up Python
+      - name: Install Python
+        uses: actions/setup-python@v5
+        # see details (matrix, python-version, python-version-file, etc.)
+        # https://github.com/actions/setup-python
+        with:
+          python-version: "3.12"
+          cache: pip
+
+      # Set up Poetry and the venv
+      - name: Install poetry
+        uses: abatilo/actions-poetry@v2
+      - name: Setup a local virtual environment (if no poetry.toml file)
+        run: |
+          poetry config virtualenvs.create true --local
+          poetry config virtualenvs.in-project true --local
+      - uses: actions/cache@v3
+        name: Define a cache for the virtual environment based on the dependencies lock file
+        with:
+          path: ./.venv
+          key: venv-${{ hashFiles('poetry.lock') }}
+      - name: Install the project dependencies
+        run: poetry install --with dev
+
+      # Build a package
+      - name: Build a package
+        run: poetry build
+
+      # Create a release if a tag is pushed
+      - name: Release
+        uses: softprops/action-gh-release@v2
+        if: github.ref_type == 'tag'
+        with:
+          body_path: CHANGELOG.md
+          files: |
+            dist/*-*.tar.gz
+            dist/*-*.whl

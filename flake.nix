@@ -19,6 +19,7 @@
         in
         pkgs.mkShell {
           packages = with pkgs; [
+            act
             poetry
             pre-commit
             python313
