@@ -31,11 +31,19 @@ repos:
       - id: check-symlinks
       - id: destroyed-symlinks
 
-  - repo: https://github.com/commitizen-tools/commitizen
-    rev: v4.8.2
+  - repo: local
     hooks:
-      # commit message linting
+      # Taken from
+      # https://github.com/commitizen-tools/commitizen/blob/c1884bddbeb6afa0af72c9526e18fac16c46e766/.pre-commit-hooks.yaml#L1C1-L12C38
       - id: commitizen
+        name: commitizen check
+        description: >
+          Check whether the current commit message follows committing rules. Allow
+          empty commit messages by default, because they typically indicate to Git
+          that the commit should be aborted.
+        entry: cz check
+        args: [--allow-abort, --commit-msg-file]
         stages: [commit-msg]
-      - id: commitizen-branch
-        stages: [pre-push]
+        language: python
+        language_version: python3
+        minimum_pre_commit_version: "1.4.3"

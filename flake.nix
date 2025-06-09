@@ -19,7 +19,6 @@
         in
         pkgs.mkShell {
           packages = with pkgs; [
-            commitizen
             poetry
             pre-commit
             python313

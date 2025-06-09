@@ -9,7 +9,6 @@ dependencies = [
     "commitizen (>=4.8.2,<5.0.0)"
 ]
 
-[project.entry-points]
 [project.entry-points."commitizen.plugin"]
 cz_extended_conventional = "cz_extended_conventional:ExtendedConventionalCz"
 
@@ -22,7 +21,7 @@ pytest = "^8.4.0"
 
 [tool.commitizen]
 major_version_zero = true
-name = "cz_conventional_commits"
+name = "cz_extended_conventional"
 tag_format = "v$version"
 update_changelog_on_bump = true
 version_provider = "poetry"
