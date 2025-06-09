@@ -14,7 +14,7 @@ cz_extended_conventional = "cz_extended_conventional:ExtendedConventionalCz"
 
 [tool.poetry]
 packages = [{include = "cz_extended_conventional.py", from = "src" }]
-version = "0.0.0"
+version = "0.1.0rc0"
 
 [tool.poetry.group.test.dependencies]
 pytest = "^8.4.0"
