@@ -32,7 +32,6 @@ class ExtendedConventionalCz(ConventionalCommitsCz):
                 "key": "o",
             },
         ]
-        prefix_question["choices"].sort(key=lambda c: c["value"])
         return questions
 
     @override
