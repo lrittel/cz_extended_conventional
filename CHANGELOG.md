@@ -1,3 +1,9 @@
+## v0.1.0rc4 (2025-07-22)
+
+### Fix
+
+- preserve the sorting of the prefix choices
+
 ## v0.1.0rc3 (2025-06-09)
 
 ## v0.1.0rc2 (2025-06-09)
